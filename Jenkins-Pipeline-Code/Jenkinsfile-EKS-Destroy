@@ -1,0 +1,42 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Deploy to Docker Container') {
+            steps {
+                script {
+                    // Pull the latest image from Docker Hub
+                    sh 'docker pull nusratdev/reddit:${BUILD_NUMBER}'
+                    // Stop and remove any existing container with the same name
+                    sh 'docker stop reddit || true'
+                    sh 'docker rm reddit || true'
+                    // Run a new container with the updated image
+                    // sh 'docker run -d --name reddit -p 3000:3000 pardeepkaur/reddit:latest'
+                }
+            }
+        }
+        stage('Deploy to Kubernetes'){
+            steps{
+                script{
+                    // Delete existing resources from Kubernetes
+                    withKubeConfig(credentialsId: 'k8s', serverUrl: '', caCertificate: '', contextName: '', namespace: '') {
+                        sh 'kubectl delete -f deployment.yml'
+                        sh 'kubectl delete -f service.yml'
+                        sh 'kubectl delete -f ingress.yml'
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'hr.nusrat@gmail.com',
+                attachmentsPattern: 'trivy.txt'
+        }
+    }
+}
