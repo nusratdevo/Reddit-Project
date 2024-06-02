@@ -319,12 +319,16 @@ sudo systemctl start node_exporter
 ``` shell
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 ```
-- Create a Kubernetes namespace for the Node Exporter:
-```kubectl create namespace prometheus-node-exporter```
+- Create a Kubernetes namespace for the Node Exporter
+kubectl create namespace prometheus-node-exporter
+```
 - Install the Node Exporter using Helm:
-```helm install prometheus-node-exporter prometheus-community/prometheus-node-exporter --namespace prometheus-node-exporter```
+```shell
+helm install prometheus-node-exporter prometheus-community/prometheus-node-exporter --namespace prometheus-node-exporter
+```
 -Check if all the resources are up and running.
-```Shell  
+```Shell
+kubectl get pods -n prometheus-node-exporter 
 kubectl get all -n prometheus-node-exporter 
 kubectl get svc -n prometheus-node-exporter 
 ```
