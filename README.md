@@ -223,7 +223,8 @@ kubectl get svc
 ```
 
 ### step 10:  Configure EKS Monitoring:
-- Create an ubuntu EC2 instance with instance.type as ‘t2.micro’ and Installing Prometheus on it
+- Create an ubuntu EC2 instance with instance.type as ‘t2.micro’ , Open inbound rules for ports 9090, 9100, 8080, 8081 and Installing Prometheus on it
+- http://<your-server-ip>:9090 (access Prometheus on browser)
 ```shell
 sudo useradd --system --no-create-home --shell /bin/false prometheus
 wget https://github.com/prometheus/prometheus/releases/download/v2.47.1/prometheus-2.47.1.linux-amd64.tar.gz
@@ -348,7 +349,10 @@ scrape_configs:
     static_configs:
       - targets: ['node1Ip:9100']
 ```
+-Check the validity of the configuration file:
+``` promtool check config /etc/prometheus/prometheus.yml ```
 - Now check the targets in the prometheus console, we need to expose port: 9090 (Prometheus)
+- You can access Prometheus targets at:``` http://<your-prometheus-ip>:9090/targets ```
 image
 
 ### step 14: Install grafana.
