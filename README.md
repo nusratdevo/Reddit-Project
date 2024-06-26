@@ -3,7 +3,7 @@ This project demonstrates how to deploy a Reddit clone app on Amazon Elastic Kub
 ## Prerequisites
 ### DevSecOps Project Diagram:
 
-![python-cicd](images/python-cicd.jpg)
+![python-cicd](images/main.webp)
 
 ## Tools Used:
 
