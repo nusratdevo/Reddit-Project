@@ -121,7 +121,7 @@ Image:
 ```shell
  stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name reddit -p 3000:3000 pardeepkaur/reddit:latest'}
+                sh 'docker run -d --name reddit -p 3000:3000 nusratdev/reddit:latest'}
         }
 ```
 
