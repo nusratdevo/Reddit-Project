@@ -81,7 +81,7 @@ administrative password : sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 * Kubernetes CLI
 * Kubernetes Client API
 * Kubernetes Pipeline DevOps steps
-* pipline stage view
+* Pipeline: Stage View
 
 ### step 5: Set up Jenkins Tools Configuration:
 
