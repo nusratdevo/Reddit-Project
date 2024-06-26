@@ -140,16 +140,29 @@ cat config
 - goto manage jenkins->credentials->system->global credentails: kind (Secret file) and ID (k8s-cred)
 - Add Stage in Jenkins pipeline to deploy Kubernetes cluster.
 ```shell 
-stage('Deploy to kubernets'){
+        stage('Deploy to kubernets'){
             steps{
                 dir('K8s'){
                    script{
-                       withKubeConfig(caCertificate: '', clusterName: 'arn:aws:eks:us-east-1:688052076787:cluster/reddit-cluster', contextName: '', credentialsId: 'k8s-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://AD7FE48F059180641C4673C77154A09B.sk1.us-east-1.eks.amazonaws.com') {
+                       withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://AD7FE48F059180641C4673C77154A09B.sk1.us-east-1.eks.amazonaws.com') {
                         sh 'kubectl apply -f deployment.yml'
                         sh 'kubectl apply -f service.yml'
                         }
                     }
                 }
+            }
+        }
+       
+    }
+     post {
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'hr.nusrat@gmail.com',
+                attachmentsPattern: 'Hello Deployment'
             }
         }
 ```
