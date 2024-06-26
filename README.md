@@ -135,23 +135,30 @@ Image:
 cd .kube
 cat config
 ```
-- copy the file that content and save in a local file with any name as EKS-SECRET file.
-- goto manage jenkins->credentials->system->global credentails: kind (Secret file) and ID (k8s)
+- Add a service account, role, roli-bind and secret for rbac authentication.
+- then create bearer token for kubernatest authentication on jenkins
+- goto manage jenkins->credentials->system->global credentails: kind (Secret file) and ID (k8s-cred)
 - Add Stage in Jenkins pipeline to deploy Kubernetes cluster.
 ```shell 
 stage('Deploy to kubernets'){
             steps{
-                script{
-                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                       sh 'kubectl apply -f deployment.yml'
-                       sh 'kubectl apply -f service.yml'
-                       sh 'kubectl apply -f ingress.yml'
-                  }
+                dir('K8s'){
+                   script{
+                       withKubeConfig(caCertificate: '', clusterName: 'arn:aws:eks:us-east-1:688052076787:cluster/reddit-cluster', contextName: '', credentialsId: 'k8s-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://AD7FE48F059180641C4673C77154A09B.sk1.us-east-1.eks.amazonaws.com') {
+                        sh 'kubectl apply -f deployment.yml'
+                        sh 'kubectl apply -f service.yml'
+                        }
+                    }
                 }
             }
         }
 ```
-- Access Aplication from aws loadbalancer DNS name url or rwite command ``` kubectl get nodes```
+- Access Aplication from aws loadbalancer DNS name url or rwite command
+- ``` shell
+  kubectl get nodes
+  kubectl get pods -n webapps
+  kubectl get svc -n webapps
+  ```
 - In cluster's node's SG inbound rule add 31148 port. so open port 31148 in eks cluster sg
 ### Step 10: add Email to jenkins 
 - Go to gmail account-> manage your google account->security->app passwords (generate a password that will add to jenkins credentials)
