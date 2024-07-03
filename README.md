@@ -172,7 +172,7 @@ cat config
         }
 ```
 
-![reddit pipeline.PNG](images/reddit pipeline.PNG)
+![reddit-pipeline.PNG](images/reddit-pipeline.PNG)
 - Access Aplication from aws loadbalancer DNS name url or rwite command ``` kubectl get nodes```
 - In cluster's node's SG inbound rule add 31148 port. so open port 31148 in eks cluster sg
 
