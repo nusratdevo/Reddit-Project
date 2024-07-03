@@ -86,6 +86,7 @@ administrative password : sudo cat /var/lib/jenkins/secrets/initialAdminPassword
 * Kubernetes CLI
 * Kubernetes Client API
 * Kubernetes Pipeline DevOps steps
+* Pipeline: Stage View
 
 ### step 5: Set up Jenkins Tools Configuration:
 
@@ -126,7 +127,7 @@ Image:
 ```shell
  stage('Deploy to container'){
             steps{
-                sh 'docker run -d --name reddit -p 3000:3000 pardeepkaur/reddit:latest'}
+                sh 'docker run -d --name reddit -p 3000:3000 nusratdev/reddit:latest'}
         }
 ```
 
@@ -139,19 +140,34 @@ Image:
 cd .kube
 cat config
 ```
-- copy the file that content and save in a local file with any name as EKS-SECRET file.
-- goto manage jenkins->credentials->system->global credentails: kind (Secret file) and ID (k8s)
+- Add a service account, role, roli-bind and secret for rbac authentication.
+- then create bearer token for kubernatest authentication on jenkins
+- goto manage jenkins->credentials->system->global credentails: kind (Secret file) and ID (k8s-cred)
 - Add Stage in Jenkins pipeline to deploy Kubernetes cluster.
 ```shell 
-stage('Deploy to kubernets'){
+        stage('Deploy to kubernets'){
             steps{
-                script{
-                    withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s', namespace: '', restrictKubeConfigAccess: false, serverUrl: '') {
-                       sh 'kubectl apply -f deployment.yml'
-                       sh 'kubectl apply -f service.yml'
-                       sh 'kubectl apply -f ingress.yml'
-                  }
+                dir('K8s'){
+                   script{
+                       withKubeConfig(caCertificate: '', clusterName: '', contextName: '', credentialsId: 'k8s-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://AD7FE48F059180641C4673C77154A09B.sk1.us-east-1.eks.amazonaws.com') {
+                        sh 'kubectl apply -f deployment.yml'
+                        sh 'kubectl apply -f service.yml'
+                        }
+                    }
                 }
+            }
+        }
+       
+    }
+     post {
+        always {
+            emailext attachLog: true,
+                subject: "'${currentBuild.result}'",
+                body: "Project: ${env.JOB_NAME}<br/>" +
+                    "Build Number: ${env.BUILD_NUMBER}<br/>" +
+                    "URL: ${env.BUILD_URL}<br/>",
+                to: 'hr.nusrat@gmail.com',
+                attachmentsPattern: 'Hello Deployment'
             }
         }
 ```
@@ -196,7 +212,8 @@ stage('Deploy to kubernets'){
 ---
 
 ### step 10:  Configure EKS Monitoring:
-- Create an ubuntu EC2 instance with instance.type as ‘t2.micro’ and Installing Prometheus on it
+- Create an ubuntu EC2 instance with instance.type as ‘t2.micro’ , Open inbound rules for ports 9090, 9100, 8080, 8081 and Installing Prometheus on it
+- http://<your-server-ip>:9090 (access Prometheus on browser)
 ```shell
 sudo useradd --system --no-create-home --shell /bin/false prometheus
 wget https://github.com/prometheus/prometheus/releases/download/v2.47.1/prometheus-2.47.1.linux-amd64.tar.gz
@@ -291,12 +308,16 @@ sudo systemctl start node_exporter
 ``` shell
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 ```
-- Create a Kubernetes namespace for the Node Exporter:
-```kubectl create namespace prometheus-node-exporter```
+- Create a Kubernetes namespace for the Node Exporter
+kubectl create namespace prometheus-node-exporter
+```
 - Install the Node Exporter using Helm:
-```helm install prometheus-node-exporter prometheus-community/prometheus-node-exporter --namespace prometheus-node-exporter```
+```shell
+helm install prometheus-node-exporter prometheus-community/prometheus-node-exporter --namespace prometheus-node-exporter
+```
 -Check if all the resources are up and running.
-```Shell  
+```Shell
+kubectl get pods -n prometheus-node-exporter 
 kubectl get all -n prometheus-node-exporter 
 kubectl get svc -n prometheus-node-exporter 
 ```
@@ -321,7 +342,10 @@ scrape_configs:
     static_configs:
       - targets: ['node1Ip:9100']
 ```
+-Check the validity of the configuration file:
+``` promtool check config /etc/prometheus/prometheus.yml ```
 - Now check the targets in the prometheus console, we need to expose port: 9090 (Prometheus)
+- You can access Prometheus targets at:``` http://<your-prometheus-ip>:9090/targets ```
 image
 ![prometheus.jpg](images/prometheus.jpg)
 
